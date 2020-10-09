@@ -7,58 +7,7 @@ local function panic(...)
   node.restart()
 end
 
-local function bxor(a, b)
-    local r = 0
-    for i = 0, 31 do
-        if (a % 2 + b % 2 == 1) then
-            r = r + 2 ^ i
-        end
-        a = a / 2
-        b = b / 2
-    end
-    return r
-end
-
---- Get temperature from DS18B20
-local function get_temp()
-  ow.reset_search(OW_PIN)
-  local addr = ow.search(OW_PIN)
-    
-  if addr == nil then
-    return nil
-  end
-
-  local crc = ow.crc8(string.sub(addr, 1, 7))
-  if (crc == addr:byte(8)) then
-    if ((addr:byte(1) == 0x10) or (addr:byte(1) == 0x28)) then
-      ow.reset(OW_PIN)
-      ow.select(OW_PIN, addr)
-      ow.write(OW_PIN, 0x44, 1)
-      tmr.delay(1000000)
-      present = ow.reset(OW_PIN)
-      ow.select(OW_PIN, addr)
-      ow.write(OW_PIN, 0xBE, 1)
-      local data = nil
-      data = string.char(ow.read(OW_PIN))
-      for i = 1, 8 do
-        data = data .. string.char(ow.read(OW_PIN))
-      end
-      crc = ow.crc8(string.sub(data, 1, 8))
-      if (crc == data:byte(9)) then
-        local t = (data:byte(1) + data:byte(2) * 256)
-        if (t > 32768) then
-          t = (bxor(t, 0xffff)) + 1
-          t = (-1) * t
-        end
-        t = t * 625
-        return t
-      end
-    end
-  end
-  return nil    
-end
-
-local function send_temp(t1, t2)
+local function send_temp(temperature)
     -- conection to thingspeak.com
     print("Sending data to thingspeak.com")
     conn = net.createConnection(net.TCP, 0)
@@ -70,7 +19,7 @@ local function send_temp(t1, t2)
     )
     -- api.thingspeak.com 184.106.153.149
     conn:connect(80, "184.106.153.149")
-    conn:send("GET /update?key=***REMOVED***&field2=" .. t1 .. "." .. string.format("%04d", t2) .. " HTTP/1.1\r\n")
+    conn:send("GET /update?key=***REMOVED***&field2=" .. temperature .. " HTTP/1.1\r\n")
     conn:send("Host: api.thingspeak.com\r\n")
     conn:send("Accept: */*\r\n")
     conn:send("User-Agent: Mozilla/4.0 (compatible; esp8266 Lua; Windows NT 5.1)\r\n")
@@ -90,22 +39,27 @@ local function send_temp(t1, t2)
     )
 end
 
-local function handle_temp()
-    local t1 = get_temp()
-    if t1 == nil then return end
-    local t2 = (t1 >= 0 and t1 % 10000) or (10000 - t1 % 10000)
-    t1 = t1 / 10000
-    print("Temp:" .. t1 .. "." .. string.format("%04d", t2) .. " C\n")
-    if PRODUCTION == 1 then
-      send_temp(t1, t2)
-    end
+local function handle_temp(temp)
+  if #ds18b20.sens == 0 then
+    print("Sensor not found.")
+    return
+  end
+  for addr, temp in pairs(temp) do
+    temperature = temp
+  end
+  print(string.format("Temp: %s C", temperature))
+  if PRODUCTION == 1 then
+    send_temp(temperature)
+  end
 end
 
 local function meassure_temperatur()
+  ds18b20 = require("ds18b20")
+  
   local temp_timer = tmr.create()
   if not temp_timer:alarm(TEMP_TIME, tmr.ALARM_AUTO, 
     function()
-      handle_temp()
+      ds18b20:read_temp(handle_temp, pin, ds18b20.C, nil)
     end)
   then
     panic("ERROR")
@@ -125,31 +79,16 @@ local function init_wifi()
   wifi.sta.disconnect()
   wifi.sta.clearconfig()
   wifi.sta.config({ssid=SSID,
-                 pwd=PASSWORD,
+                 pwd="***REMOVED***",
 --                 connect_cb=connected,
 --                 disconnected_cb=disconnected,
                  got_ip_cb=got_ip,
                  auto=true, save=false})
---  wifi.sta.config({ssid=SSID, pwd=PWD})
---  if not wifi_timer:alarm(1000, tmr.ALARM_AUTO,
---    function()
---      if wifi.sta.getip() == nil then 
---        print("IP unavaiable, Waiting...") 
---      else
---        wifi_timer:stop()
---        wifi_timer:unregister()
---        ip, netmask, gateway = wifi.sta.getip()
---        print("ip: "..ip.." netmask: "..netmask.." gateway: "..gateway.."\n")
---      end
---    end)
---  then
---    panic("ERROR")
---  end
 end
 
 local function start()
   if not PRODUCTION then
-      PRODUCTION = 1
+      PRODUCTION = 0 -- CHANGE IT!
   end
   if PRODUCTION == 1 then
     TEMP_TIME = 120000
