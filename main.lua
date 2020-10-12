@@ -19,15 +19,11 @@ local SLEEP_TIME = 600000000
 if PRODUCTION == 0 then
   SLEEP_TIME = 5000000
 end
-  
-local function panic(...)
-  print("ERROR!".. ... .."Rebooting...\n\n")
-  node.restart()
-end
 
 local function do_sleep()
-  print(string.format("DeepSleep for %d [us]",SLEEP_TIME))
+  print(string.format("DeepSleep for %d [us]", SLEEP_TIME))
   node.dsleep(SLEEP_TIME, 3)
+--  tmr.alarm(2, SLEEP_TIME/1000, 0, function() node.restart() end)
 end
 
 local function send_temp(temperature)
@@ -42,7 +38,7 @@ local function send_temp(temperature)
     )
     -- api.thingspeak.com 184.106.153.149
     conn:connect(80, "184.106.153.149")
-    conn:send("GET /update?key=***REMOVED***&field" ..OUTSIDE.. "=" .. temperature .. " HTTP/1.1\r\n")
+    conn:send("GET /update?key=***REMOVED***&field" ..INSIDE.. "=" .. temperature .. " HTTP/1.1\r\n")
     conn:send("Host: api.thingspeak.com\r\n")
     conn:send("Accept: */*\r\n")
     conn:send("User-Agent: Mozilla/4.0 (compatible; esp8266 Lua; Windows NT 5.1)\r\n")
@@ -65,13 +61,16 @@ local function send_temp(temperature)
 end
 
 local function handle_temp(temp)
-  if #ds18b20.sens == 0 then
+  local sensor_found = false 
+  for addr, temp in pairs(temp) do
+    temperature = temp
+    sensor_found = true
+  end
+--  TODO: Chck it!
+  if not sensor_found then
     print("Sensor not found.")
     do_sleep()
     return
-  end  
-  for addr, temp in pairs(temp) do
-    temperature = temp
   end
   print(string.format("Temp: %s C", temperature))
   if PRODUCTION == 1 then
@@ -82,24 +81,27 @@ local function handle_temp(temp)
 end
 
 local function meassure_temperatur()
-  ds18b20 = require("ds18b20")
+  if not ds18b20 then
+    ds18b20 = require("ds18b20")
+  end
   ds18b20:read_temp(handle_temp, pin, ds18b20.C, nil)
 end
 
 local function got_ip(info)
-     print(string.format("got ip: %s, mask: %s, gw: %s", info.IP, info.netmask, info.gateway))
-     wifi.eventmon.unregister(wifi.eventmon.STA_GOT_IP)
-     got_ip=nil
+     print(string.format("got_ip() ip: %s, mask: %s, gw: %s", info.IP, info.netmask, info.gateway))
+     if wifi.eventmon then
+        print("CHECK! Unregistering...")
+        wifi.eventmon.unregister(wifi.eventmon.STA_GOT_IP)
+     end
      meassure_temperatur()
 end
 
 local function init_wifi()
-  local wifi_timer = tmr.create()
   wifi.setmode(wifi.STATION)
   wifi.sta.disconnect()
   wifi.sta.clearconfig()
   wifi.sta.config({ssid=SSID,
-                 pwd="***REMOVED***",
+                 pwd=PASSWORD,
 --                 connect_cb=connected,
 --                 disconnected_cb=disconnected,
                  got_ip_cb=got_ip,
@@ -107,7 +109,8 @@ local function init_wifi()
 end
 
 local function start()
-  init_wifi()
+  my_wifi = require("my_wifi")
+  my_wifi:init_wifi(SSID, PASSWORD, got_ip)
 end
 
 start()

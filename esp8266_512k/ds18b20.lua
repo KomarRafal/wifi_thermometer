@@ -1,7 +1,8 @@
 --------------------------------------------------------------------------------
--- DS18B20 one wire module for NODEMCU 512 KB flash
+-- DS18B20 one wire module for 512 KB flash and nodeMCU 0.9.5
 --------------------------------------------------------------------------------
 local pin = 3
+local MAX_RETRIES = 5
 
 local function bxor(a, b)
     local r = 0
@@ -19,9 +20,13 @@ end
 local function read_temp(self, call_back, lpin, unit, force_search)
   pin = lpin or pin
   ow.setup(pin)
-  ow.reset_search(pin)
-  addr = ow.search(pin)
   self.sens = {}
+  for i = 1, MAX_RETRIES do
+    ow.reset_search(pin)
+    addr = ow.search(pin)
+    if (addr ~= nil) then break end
+    tmr.delay(100000)
+  end
   if (addr ~= nil) then
     crc = ow.crc8(string.sub(addr, 1, 7))
     if (crc == addr:byte(8)) then
@@ -47,14 +52,14 @@ local function read_temp(self, call_back, lpin, unit, force_search)
           end
           temp = temp * 625
           temp_integer = temp / 10000
-          temp_fraction = (temp >= 0 and temp % 10000) or (10000 - temp % 10000)
-          self.sens[0] = string.format("%d.%02d", temp_integer,  temp_fraction)
+          temp_fraction = (temp >= 0 and temp % 100) or (100 - temp % 100)
+          self.sens[0] = string.format("%d.%02d", temp_integer, temp_fraction)
         end
       end
     end
   end
   if call_back then
-    node_task_post(node_task_LOW_PRIORITY, function() return cb(ds18b20.sens) end)
+    tmr.alarm(1, 10, 0, function() return call_back(ds18b20.sens) end)
   else
     if self.sens[0] then
       print(string.format("Temp: %s\n", self.sens[0]))
