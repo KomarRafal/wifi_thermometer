@@ -96,18 +96,6 @@ local function got_ip(info)
      meassure_temperatur()
 end
 
-local function init_wifi()
-  wifi.setmode(wifi.STATION)
-  wifi.sta.disconnect()
-  wifi.sta.clearconfig()
-  wifi.sta.config({ssid=SSID,
-                 pwd=PASSWORD,
---                 connect_cb=connected,
---                 disconnected_cb=disconnected,
-                 got_ip_cb=got_ip,
-                 auto=true, save=false})
-end
-
 local function start()
   my_wifi = require("my_wifi")
   my_wifi:init_wifi(SSID, PASSWORD, got_ip)
