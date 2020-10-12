@@ -2,15 +2,18 @@
 TODO:
 - static IP
 - web base wifi configurtion
-- parameterize temperature channel
+- parameterize temperature field (outside, inside) (maybe from webpage?)
 ]]--
 
 local SSID = "***REMOVED***"
 local PASSWORD = "***REMOVED***"
+local WIFI_TIMEOUT = 20000
 local OW_PIN = 3
 
 local INSIDE = 1
 local OUTSIDE = 2
+
+PRODUCTION = 0
 
 if not PRODUCTION then
   PRODUCTION = 1
@@ -23,7 +26,6 @@ end
 local function do_sleep()
   print(string.format("DeepSleep for %d [us]", SLEEP_TIME))
   node.dsleep(SLEEP_TIME, 3)
---  tmr.alarm(2, SLEEP_TIME/1000, 0, function() node.restart() end)
 end
 
 local function send_temp(temperature)
@@ -81,9 +83,7 @@ local function handle_temp(temp)
 end
 
 local function meassure_temperatur()
-  if not ds18b20 then
-    ds18b20 = require("ds18b20")
-  end
+  ds18b20 = require("ds18b20")
   ds18b20:read_temp(handle_temp, pin, ds18b20.C, nil)
 end
 
@@ -93,12 +93,18 @@ local function got_ip(info)
         print("CHECK! Unregistering...")
         wifi.eventmon.unregister(wifi.eventmon.STA_GOT_IP)
      end
+     my_wifi = nil
      meassure_temperatur()
+end
+
+local function wifi_timeout()
+  print("WiFi timeout...")
+  do_sleep()
 end
 
 local function start()
   my_wifi = require("my_wifi")
-  my_wifi:init_wifi(SSID, PASSWORD, got_ip)
+  my_wifi:init_wifi(SSID, PASSWORD, got_ip, WIFI_TIMEOUT, wifi_timeout)
 end
 
 start()
