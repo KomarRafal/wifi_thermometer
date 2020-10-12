@@ -5,15 +5,21 @@ TODO:
 - parameterize temperature field (outside, inside) (maybe from webpage?)
 ]]--
 
-local SSID = "***REMOVED***"
-local PASSWORD = "***REMOVED***"
-local WIFI_TIMEOUT = 20000
-local OW_PIN = 3
+-- Below variables are commented out because of lack of memory in 512KB of flash
+--
+--local SSID = "***REMOVED***"
+--local PASSWORD = "***REMOVED***"
+--local WIFI_TIMEOUT = 20000
+--local OW_PIN = 3
+--
+--local INSIDE = 1
+--local OUTSIDE = 2
 
-local INSIDE = 1
-local OUTSIDE = 2
+--local KEY_CHOPINA = "***REMOVED***"
+--local KEY_BRENNA = "***REMOVED***"
 
-PRODUCTION = 0
+-- Uncomment it if you want to just see tempreature without sending
+--PRODUCTION = 0
 
 if not PRODUCTION then
   PRODUCTION = 1
@@ -40,7 +46,7 @@ local function send_temp(temperature)
     )
     -- api.thingspeak.com 184.106.153.149
     conn:connect(80, "184.106.153.149")
-    conn:send("GET /update?key=***REMOVED***&field" ..INSIDE.. "=" .. temperature .. " HTTP/1.1\r\n")
+    conn:send("GET /update?key=***REMOVED***&field1=" .. temperature .. " HTTP/1.1\r\n")
     conn:send("Host: api.thingspeak.com\r\n")
     conn:send("Accept: */*\r\n")
     conn:send("User-Agent: Mozilla/4.0 (compatible; esp8266 Lua; Windows NT 5.1)\r\n")
@@ -63,6 +69,7 @@ local function send_temp(temperature)
 end
 
 local function handle_temp(temp)
+  package.loaded["ds18b20"] = nil
   local sensor_found = false 
   for addr, temp in pairs(temp) do
     temperature = temp
@@ -84,16 +91,17 @@ end
 
 local function meassure_temperatur()
   ds18b20 = require("ds18b20")
-  ds18b20:read_temp(handle_temp, pin, ds18b20.C, nil)
+--  ds18b20:read_temp(handle_temp, OW_PIN, ds18b20.C, nil)
+  ds18b20:read_temp(handle_temp, 3, ds18b20.C, nil)
 end
 
 local function got_ip(info)
-     print(string.format("got_ip() ip: %s, mask: %s, gw: %s", info.IP, info.netmask, info.gateway))
-     if wifi.eventmon then
-        print("CHECK! Unregistering...")
-        wifi.eventmon.unregister(wifi.eventmon.STA_GOT_IP)
-     end
-     my_wifi = nil
+     print(string.format("ip: %s, mask: %s, gw: %s", info.IP, info.netmask, info.gateway))
+--     if wifi.eventmon then
+--        print("CHECK! Unregistering...")
+--        wifi.eventmon.unregister(wifi.eventmon.STA_GOT_IP)
+--     end
+     package.loaded["my_wifi"] = nil
      meassure_temperatur()
 end
 
@@ -104,7 +112,8 @@ end
 
 local function start()
   my_wifi = require("my_wifi")
-  my_wifi:init_wifi(SSID, PASSWORD, got_ip, WIFI_TIMEOUT, wifi_timeout)
+--  my_wifi:init_wifi(SSID, PASSWORD, got_ip, WIFI_TIMEOUT, wifi_timeout)
+my_wifi:init_wifi("***REMOVED***", "***REMOVED***", got_ip, 20000, wifi_timeout)
 end
 
 start()

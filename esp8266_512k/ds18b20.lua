@@ -1,9 +1,6 @@
 --------------------------------------------------------------------------------
 -- DS18B20 one wire module for 512 KB flash and nodeMCU 0.9.5
 --------------------------------------------------------------------------------
-local pin = 3
-local MAX_RETRIES = 5
-
 local function bxor(a, b)
     local r = 0
     for i = 0, 31 do
@@ -17,11 +14,11 @@ local function bxor(a, b)
 end
 
 --- Get temperature from DS18B20
-local function read_temp(self, call_back, lpin, unit, force_search)
-  pin = lpin or pin
+local function read_temp(self, call_back, pin, unit, force_search)
   ow.setup(pin)
   self.sens = {}
-  for i = 1, MAX_RETRIES do
+  local addr = nil
+  for i = 1, 5 do
     ow.reset_search(pin)
     addr = ow.search(pin)
     if (addr ~= nil) then break end
@@ -35,7 +32,7 @@ local function read_temp(self, call_back, lpin, unit, force_search)
         ow.select(pin, addr)
         ow.write(pin, 0x44, 1)
         tmr.delay(1000000)
-        present = ow.reset(pin)
+        ow.reset(pin)
         ow.select(pin, addr)
         ow.write(pin, 0xBE, 1)
         local data = nil

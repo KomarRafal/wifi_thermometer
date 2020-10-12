@@ -12,7 +12,7 @@ local function init_wifi(self, ssid, pwd, call_back, timeout_ms, timeout_callbac
   if timeout_ms and timeout_callback then
     tmr.alarm(2, timeout_ms, 0, function() return timeout(timeout_callback) end)
   end
-  print("Setting up WIFI...")
+  print("Setting up WiFi...")
   wifi.sta.disconnect()
   wifi.setmode(wifi.STATION)
   wifi.sta.config(ssid, pwd)
@@ -25,7 +25,7 @@ local function init_wifi(self, ssid, pwd, call_back, timeout_ms, timeout_callbac
       if call_back then
         call_back(info)
       else
-        print(string.format("got ip: %s, mask: %s, gw: %s", info.IP, info.netmask, info.gateway))
+        print(info.IP .. " " .. info.netmask .. " " .. info.gateway)
       end
       return
     end
