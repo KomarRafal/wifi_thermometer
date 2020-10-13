@@ -1,13 +1,16 @@
 --[[
 TODO:
-- static IP
+- static IP, maybe in CONFIG_FILE
 - web base wifi configurtion
 - parameterize temperature field (outside, inside) (maybe from webpage?)
+- blink led when connecting
 ]]--
 
--- Below variables are commented out because of lack of memory in 512KB of flash
-local SSID = "***REMOVED***"
-local PASSWORD = "***REMOVED***"
+if not BUTTON then
+  BUTTON = false
+end
+
+local CONFIG_FILE = "eus_params.lua"
 local WIFI_TIMEOUT = 20000
 local OW_PIN = 3
 
@@ -18,7 +21,7 @@ local KEY_CHOPINA = "***REMOVED***"
 local KEY_BRENNA = "***REMOVED***"
 
 -- Uncomment it if you want to just see tempreature without sending
---PRODUCTION = 0
+PRODUCTION = 0
 
 if not PRODUCTION then
   PRODUCTION = 1
@@ -93,12 +96,10 @@ local function meassure_temperatur()
 end
 
 local function got_ip(info)
-     print(string.format("ip: %s, mask: %s, gw: %s", info.IP, info.netmask, info.gateway))
-     if wifi.eventmon then
-        wifi.eventmon.unregister(wifi.eventmon.STA_GOT_IP)
-     end
-     package.loaded["my_wifi"] = nil
-     meassure_temperatur()
+  IP, netmask, gateway = wifi.sta.getip()
+  print(string.format("ip: %s, mask: %s, gw: %s", info.IP, info.netmask, info.gateway))
+  wifi.eventmon.unregister(wifi.eventmon.STA_GOT_IP)
+  meassure_temperatur()
 end
 
 local function wifi_timeout()
@@ -106,9 +107,46 @@ local function wifi_timeout()
   do_sleep()
 end
 
+local function check_button()
+-- TODO:
+  return BUTTON
+end
+
+local function configure_wifi()
+  print("Configuring wifi...")
+  enduser_setup.start(
+    function()
+      tmr.create():alarm(3000, tmr.ALARM_SINGLE, function()
+        print("Connected to wifi as: " .. wifi.sta.getip())
+        node.restart()
+      end)
+    end,
+    function(err, str)
+      print("enduser_setup: Err #" .. err .. ": " .. str)
+    end,
+    print -- Lua print function can serve as the debug callback
+  )
+end
+
+local function factory_reset()
+    print("Factory reset...")
+    wifi.sta.disconnect()
+    wifi.sta.clearconfig()
+    file.remove(CONFIG_FILE)
+    configure_wifi()
+end
+
+
 local function start()
-  my_wifi = require("my_wifi")
-  my_wifi:init_wifi(SSID, PASSWORD, got_ip, WIFI_TIMEOUT, wifi_timeout)
+  if check_button() then
+    factory_reset()
+  elseif not file.exists(CONFIG_FILE) then
+    configure_wifi()
+  else
+    p = dofile(CONFIG_FILE)
+    my_wifi = require("my_wifi")
+    my_wifi:init_wifi(p.wifi_ssid, p.wifi_password, got_ip, 20000, wifi_timeout)
+  end
 end
 
 start()
