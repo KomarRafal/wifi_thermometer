@@ -1,8 +1,16 @@
 --------------------------------------------------------------------------------
 -- WiFi module for flash >= 1 MB and the newest nodeMCU
 --------------------------------------------------------------------------------
+local function timeout(timeout_callback)
+  wifi.sta.disconnect()
+  timeout_callback()
+end
 
-local function init_wifi(self, ssid, pwd, call_back)
+local function init_wifi(self, ssid, pwd, call_back, timeout_ms, timeout_callback)
+  if timeout_ms and timeout_callback then
+    tmr.create():alarm(timeout_ms, tmr.ALARM_SINGLE, function() return timeout(timeout_callback) end)
+  end
+  print("Setting up WiFi...")
   wifi.setmode(wifi.STATION)
   wifi.sta.disconnect()
   wifi.sta.clearconfig()
