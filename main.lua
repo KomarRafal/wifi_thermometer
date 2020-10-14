@@ -1,10 +1,9 @@
 --[[
 TODO:
+- reset button
 - static IP, maybe in CONFIG_FILE
 - blink led when connecting
 - turn off power led while sleeping
-- web page:
-- * read frequency (10min, 15min, 30min)
 ]]--
 
 if not BUTTON then
@@ -23,14 +22,15 @@ local config = nil
 if not PRODUCTION then
   PRODUCTION = 1
 end
-local SLEEP_TIME = 600000000
-if PRODUCTION == 0 then
-  SLEEP_TIME = 5000000
-end
 
 local function do_sleep()
-  print(string.format("DeepSleep for %d [us]", SLEEP_TIME))
-  node.dsleep(SLEEP_TIME, 3)
+  local sleep_time = config.sleep_time
+  if PRODUCTION == 0 then
+    sleep_time = 5000000
+  end
+
+  print(string.format("DeepSleep for %d [us]", sleep_time))
+  node.dsleep(sleep_time, 3)
 end
 
 local function send_temp(temperature)

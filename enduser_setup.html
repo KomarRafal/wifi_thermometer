@@ -59,7 +59,7 @@
 		select {
 			font: 16px monospace;
 			background-color: transparent;
-			padding: 15px;
+			padding: 5px;
 		}
 		
 		button {
@@ -163,6 +163,13 @@
 					<input name=wifi_password type=password autocorrect=off autocapitalize=none autocomplete=off placeholder=Password />
 					<input name=write_key type=text autocorrect=off autocapitalize=none autocomplete=off placeholder="ThingSpeak write API key" />
 					<input name=field_nbr type=number autocorrect=off autocapitalize=none autocomplete=off placeholder="ThingSpeak field number" />
+					<label for="sleep_time">Sleep time: </label>
+					<select name="sleep_time" id="sleep_time" style="width: 175px; text-align-last: center">
+					  <option value="600000000">10 min</option>
+					  <option value="900000000">15 min</option>
+					  <option value="1800000000">30 min</option>
+					</select>
+					<br><br>
 					<!-- You can add inputs here and have them pop up in your lua code through the file eus_params.lua -->
 					<input type="submit" value="Save"/>
 				</form>
