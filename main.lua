@@ -1,23 +1,20 @@
 --[[
 TODO:
-- reset button
-- static IP, maybe in CONFIG_FILE
+- reset button hw
 - blink led when connecting
 - turn off power led while sleeping
+-- PRODUCTION change variable name
 ]]--
-
-if not BUTTON then
-  BUTTON = false
-end
 
 local CONFIG_FILE = "eus_params.lua"
 local WIFI_TIMEOUT = 20000
 local OW_PIN = 3
+local BUTTON_PIN = 4
 
 local config = nil
 
 -- Uncomment it if you want to just see tempreature without sending
---PRODUCTION = 0
+PRODUCTION = 0
 
 if not PRODUCTION then
   PRODUCTION = 1
@@ -31,6 +28,45 @@ local function do_sleep()
 
   print(string.format("DeepSleep for %d [us]", sleep_time))
   node.dsleep(sleep_time, 3)
+end
+
+-- GPIO module? pin as module member
+local TIMER_COUNT = 3
+local button_pin = BUTTON_PIN 
+local function check_button()
+  if gpio.read(button_pin) == 1 then
+    return false
+  end
+  for i = 0, TIMER_COUNT do
+    print("Button preset...")
+    tmr.delay(1000000)
+    if gpio.read(button_pin) == 1 then
+      return false
+    end
+  end
+  print("Button confirmed!")
+  return true
+end
+
+local function setup_gpio_factory_reset()
+  gpio.mode(button_pin, gpio.INPUT, gpio.PULLUP)
+end
+
+local function button_int_handler(level, when, eventcount)
+  print("INT...")
+  setup_gpio_factory_reset()
+  if not tmr.create():alarm(500, tmr.ALARM_SINGLE, function()
+      node.restart()
+    end)
+  then
+    node.restart()
+  end
+end
+
+
+local function setup_gpio_restart()
+  gpio.mode(button_pin, gpio.INT, gpio.PULLUP)
+  gpio.trig(button_pin, "down", button_int_handler)
 end
 
 local function send_temp(temperature)
@@ -104,11 +140,6 @@ local function wifi_timeout()
   do_sleep()
 end
 
-local function check_button()
--- TODO:
-  return BUTTON
-end
-
 local function configure_wifi()
   print("Configuring wifi...")
 --  Watchdog
@@ -134,22 +165,24 @@ end
 
 local function factory_reset()
     print("Factory reset...")
-    wifi.sta.disconnect()
-    wifi.sta.clearconfig()
-    file.remove(CONFIG_FILE)
-    configure_wifi()
+--    wifi.sta.disconnect()
+--    wifi.sta.clearconfig()
+--    file.remove(CONFIG_FILE)
+--    configure_wifi()
 end
 
 
 local function start()
+  setup_gpio_factory_reset()
   if check_button() then
     factory_reset()
   elseif not file.exists(CONFIG_FILE) then
     configure_wifi()
   else
+    setup_gpio_restart()
     config = dofile(CONFIG_FILE)
     my_wifi = require("my_wifi")
-    my_wifi:init_wifi(config.wifi_ssid, config.wifi_password, got_ip, 20000, wifi_timeout)
+    my_wifi:init_wifi(config.wifi_ssid, config.wifi_password, got_ip, WIFI_TIMEOUT, wifi_timeout)
   end
 end
 

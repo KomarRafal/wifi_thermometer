@@ -12,14 +12,12 @@ local function init_wifi(self, ssid, pwd, call_back, timeout_ms, timeout_callbac
   end
   print("Setting up WiFi...")
   wifi.setmode(wifi.STATION)
-  wifi.sta.disconnect()
-  wifi.sta.clearconfig()
   wifi.sta.config({ssid=ssid,
                  pwd=pwd,
 --                 connect_cb=connected,
 --                 disconnected_cb=disconnected,
                  got_ip_cb=call_back,
-                 auto=true, save=false})
+                 auto=true, save=true})
 end
 
  -- Set module name as parameter of require and return module table
