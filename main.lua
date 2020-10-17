@@ -14,7 +14,7 @@ local BUTTON_PIN = 4
 local config = nil
 
 -- Uncomment it if you want to just see tempreature without sending
-PRODUCTION = 0
+--PRODUCTION = 0
 
 if not PRODUCTION then
   PRODUCTION = 1
@@ -128,7 +128,28 @@ local function meassure_temperatur()
   ds18b20:read_temp(handle_temp, OW_PIN, ds18b20.C, nil)
 end
 
+local function led_blink()
+  print("                                                    ")
+end
+
+local function start_blinking(period)
+  blink_timer = tmr.create()
+  if blink_timer then
+    blink_timer:alarm(period, tmr.ALARM_AUTO, function()
+      led_blink()
+    end)
+  end
+end
+
+local function stop_blinking()
+  if blink_timer then
+    blink_timer.unregister()
+    blink_timer = nil
+  end
+end
+
 local function got_ip(info)
+  stop_blinking()
   IP, netmask, gateway = wifi.sta.getip()
   print(string.format("ip: %s, mask: %s, gw: %s", info.IP, info.netmask, info.gateway))
   wifi.eventmon.unregister(wifi.eventmon.STA_GOT_IP)
@@ -143,9 +164,10 @@ end
 local function configure_wifi()
   print("Configuring wifi...")
 --  Watchdog
-    tmr.create():alarm(300000, tmr.ALARM_SINGLE, function()
+  tmr.create():alarm(300000, tmr.ALARM_SINGLE, function()
       node.restart()
     end)
+  start_blinking(1000)
 --  wifi.setmode(wifi.STATIONAP)
 --  wifi.ap.config({ssid="TermometrWiFi", auth=wifi.OPEN})
 --  enduser_setup.manual(true)
@@ -165,19 +187,17 @@ end
 
 local function factory_reset()
     print("Factory reset...")
---    wifi.sta.disconnect()
---    wifi.sta.clearconfig()
---    file.remove(CONFIG_FILE)
---    configure_wifi()
+    wifi.sta.disconnect()
+    wifi.sta.clearconfig()
+    file.remove(CONFIG_FILE)
+    configure_wifi()
 end
 
 
 local function start()
   setup_gpio_factory_reset()
-  if check_button() then
+  if check_button() or not file.exists(CONFIG_FILE) then
     factory_reset()
-  elseif not file.exists(CONFIG_FILE) then
-    configure_wifi()
   else
     setup_gpio_restart()
     config = dofile(CONFIG_FILE)
