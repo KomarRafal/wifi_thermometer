@@ -9,12 +9,14 @@ TODO:
 local CONFIG_FILE = "eus_params.lua"
 local WIFI_TIMEOUT = 20000
 local OW_PIN = 3
+local LED_PIN = 10
 local BUTTON_PIN = 4
+local UART_BAUDRATE = 115200
 
 local config = nil
 
 -- Uncomment it if you want to just see tempreature without sending
---PRODUCTION = 0
+-- PRODUCTION = 0
 
 if not PRODUCTION then
   PRODUCTION = 1
@@ -129,12 +131,17 @@ local function meassure_temperatur()
 end
 
 local function led_blink()
-  print("                                                    ")
+  local pin = gpio.read(LED_PIN)
+  pin = pin == 1 and 0 or pin == 0 and 1
+  gpio.write(LED_PIN, pin)
 end
 
+-- LED is connected with TX0 on board,
+-- blinking will stop transmitting on UART
 local function start_blinking(period)
   blink_timer = tmr.create()
   if blink_timer then
+    gpio.mode(LED_PIN, gpio.OUTPUT, gpio.PULLUP)
     blink_timer:alarm(period, tmr.ALARM_AUTO, function()
       led_blink()
     end)
@@ -146,6 +153,7 @@ local function stop_blinking()
     blink_timer.unregister()
     blink_timer = nil
   end
+    uart.setup(0, UART_BAUDRATE, 8, uart.PARITY_NONE, uart.STOPBITS_1, 1)
 end
 
 local function got_ip(info)
@@ -195,6 +203,7 @@ end
 
 
 local function start()
+  uart.setup(0, UART_BAUDRATE, 8, uart.PARITY_NONE, uart.STOPBITS_1, 1)
   setup_gpio_factory_reset()
   if check_button() or not file.exists(CONFIG_FILE) then
     factory_reset()
