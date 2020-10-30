@@ -1,8 +1,5 @@
 --[[
 TODO:
-- reset button hw
-- blink led when connecting
-- turn off power led while sleeping
 -- PRODUCTION change variable name
 ]]--
 
