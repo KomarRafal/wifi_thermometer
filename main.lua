@@ -1,7 +1,6 @@
---[[
-TODO:
--- handle empty thingspeak key and empty field nbr
-]]--
+--------------------------------------------------------------------------------
+-- TermometrWiFi main file
+--------------------------------------------------------------------------------
 
 local CONFIG_FILE = "eus_params.lua"
 local WIFI_TIMEOUT = 20000
