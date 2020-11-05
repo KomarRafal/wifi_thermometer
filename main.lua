@@ -207,6 +207,9 @@ local function start()
   else
     setup_gpio_restart()
     config = dofile(CONFIG_FILE)
+    if not config then
+      factory_reset()
+    end
     my_wifi = require("my_wifi")
     my_wifi:init_wifi(config.wifi_ssid, config.wifi_password, got_ip, WIFI_TIMEOUT, wifi_timeout)
   end
