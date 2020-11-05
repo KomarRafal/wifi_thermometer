@@ -1,9 +1,6 @@
 --[[
 TODO:
-- reset button hw
-- blink led when connecting
-- turn off power led while sleeping
--- PRODUCTION change variable name
+-- handle empty thingspeak key and empty field nbr
 ]]--
 
 local CONFIG_FILE = "eus_params.lua"
@@ -16,15 +13,15 @@ local UART_BAUDRATE = 115200
 local config = nil
 
 -- Uncomment it if you want to just see tempreature without sending
--- PRODUCTION = 0
+-- TESTING = 1
 
-if not PRODUCTION then
-  PRODUCTION = 1
+if not TESTING then
+  TESTING = 0
 end
 
 local function do_sleep()
   local sleep_time = config.sleep_time
-  if PRODUCTION == 0 then
+  if TESTING == 1 then
     sleep_time = 5000000
   end
 
@@ -118,7 +115,7 @@ local function handle_temp(temp)
     return
   end
   print(string.format("Temp: %s C", temperature))
-  if PRODUCTION == 1 then
+  if TESTING == 0 then
     send_temp(temperature)
   else
     do_sleep()
