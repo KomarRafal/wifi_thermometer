@@ -90,7 +90,8 @@ Limited functionality works better on 512K board version. But there are some lim
 
 In my case, this works fine. But after many hours it stopped, I don't know why.
 ## User guide
-TBD
 ### Preparing ThingSpeak
-### Factory reset
+Create a free account on https://thingspeak.com. After login to ThingSpeak go to ```Channels -> My Channels```. Create a new channel ```New Channel``` (which can be either public or private). After a successful channel creation go to ```Channels -> My Channels -> Your created channel -> API Keys```. Copy ```Write API Key```.
+## Factory reset
+
 (LED blinking, web page, ThingSpeak, etc) - TBD
