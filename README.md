@@ -92,9 +92,48 @@ In my case, this works fine. But after many hours it stopped, I don't know why.
 ## User guide
 ### Preparing ThingSpeak
 Create a free account on https://thingspeak.com. After login to ThingSpeak go to ```Channels -> My Channels```. Create a new channel ```New Channel``` (which can be either public or private). After a successful channel creation go to ```Channels -> My Channels -> Your created channel -> API Keys```. Copy ```Write API Key```.
-## Activity diagram
+### Activity diagram
 ![Activity-diagram](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/KomarRafal/wifi_thermometer/master/activity_uml.iuml)
 
-## Factory reset
+### Sleep
+Most of the time device is sleeping. WiFi radio is turned off to save energy. You can set up different durations of sleeping comparing the accuracy of measurement versus device lifetime. While sleeping device can be wake up only by pressing the ```HW_RST``` button or toggling power.
 
-(LED blinking, web page, ThingSpeak, etc) - TBD
+### Reset
+```HW_RST``` button is connected directly to the reset pin. It is used to wake up the device and start ```Running``` mode (or ```Configuration``` mode). It can be used to force sending new data to the ThingSpeak server without waiting for sleep to be ended.
+
+### Factory reset
+A factory reset is performed by holding the ```Factory Reset``` button for about 4 seconds while running. The issue is that the device sleeps almost all the time and while sleeping ```Factory Reset``` button is inactive. So first you have to wake up the device by clicking ```HW_RST``` button (hardware reset - connected directly to reset pin) or by power toggling.
+
+Factory reset mode cleans all configuration from memory:
+
+- WiFi SSID
+- WiFi Password
+- ThingSpeak Key
+- ThingSpeak Field
+- sleep time
+
+After the factory reset device is switched to ```configuration``` mode.
+
+### Configuration
+In ```Configuration``` mode blue LED blinks with a one-second period (applies only to ESP 8266-01 board without "S" postfix).
+
+It is used to set up device parameters:
+
+- WiFi SSID
+- WiFi Password
+- ThingSpeak Key
+- ThingSpeak Field
+- sleep time
+
+In this mode device behaves as WiFi access point with SSID: ```SetupGadget_XXX``` where ```XXX``` is device unique serial number.
+
+- connect your PC/SmartPhone to device AP
+- using web browser navigate to ```192.168.4.1```
+- fille in configuration fields (you can scan available access points - ```Scan for Networks```):
+  - ```Wi-Fi Name``` - AP name
+  - ```Password```
+  - ```ThingSpeak write API key``` - from your ThingSpeak channel
+  - ```ThingSpeak field number``` - from your ThingSpeak channel
+  - ```Sleep time``` - can be either 10min, 15min or 30min
+
+### Running
