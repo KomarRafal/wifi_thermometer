@@ -92,6 +92,9 @@ In my case, this works fine. But after many hours it stopped, I don't know why.
 ## User guide
 ### Preparing ThingSpeak
 Create a free account on https://thingspeak.com. After login to ThingSpeak go to ```Channels -> My Channels```. Create a new channel ```New Channel``` (which can be either public or private). After a successful channel creation go to ```Channels -> My Channels -> Your created channel -> API Keys```. Copy ```Write API Key```.
+## Activity diagram
+![Activity-diagram](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/KomarRafal/wifi_thermometer/master/activity_uml.iuml)
+
 ## Factory reset
 
 (LED blinking, web page, ThingSpeak, etc) - TBD
