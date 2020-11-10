@@ -8,7 +8,7 @@ WiFi remote thermomether with thingspeak.com support.
 - two switches
 
 ## Schematic
-![alt text](https://github.com/KomarRafal/wifi_thermometer/blob/master/schematic.png?raw=true)
+![schematic](https://github.com/KomarRafal/wifi_thermometer/blob/master/schematic.png?raw=true)
 
 
 GPIO16 (D0) has to be connected with RST pin to enable wake up from deep sleep:
@@ -127,7 +127,10 @@ It is used to set up device parameters:
 
 In this mode device behaves as WiFi access point with SSID: ```SetupGadget_XXX``` where ```XXX``` is device unique serial number.
 
-- connect your PC/SmartPhone to device AP
+- connect your PC/SmartPhone to device AP:
+
+![wifi_AP](https://github.com/KomarRafal/wifi_thermometer/blob/master/wifi.png?raw=true)
+
 - using web browser navigate to ```192.168.4.1```
 - fille in configuration fields (you can scan available access points - ```Scan for Networks```):
   - ```Wi-Fi Name``` - AP name
@@ -135,5 +138,12 @@ In this mode device behaves as WiFi access point with SSID: ```SetupGadget_XXX``
   - ```ThingSpeak write API key``` - from your ThingSpeak channel
   - ```ThingSpeak field number``` - from your ThingSpeak channel
   - ```Sleep time``` - can be either 10min, 15min or 30min
+- click ```Save```
+
+![configuration](https://github.com/KomarRafal/wifi_thermometer/blob/master/config.png?raw=true)
+
+- after successfully connected to the WiFi access point device will switch to ```Running``` mode:
+
+![connected](https://github.com/KomarRafal/wifi_thermometer/blob/master/wifi_connected.png?raw=true)
 
 ### Running
