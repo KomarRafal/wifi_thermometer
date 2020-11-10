@@ -1,0 +1,53 @@
+@startuml
+
+start
+note left
+    - Power on
+    - Wakeup after sleep
+    - Reset
+end note
+    if (configuration found) then (no)
+    partition Configuration {
+        :Start wifi AP: __SetupGadget_XXX__;
+        :wait for user configuration;
+        if (timeout) then (no)
+            :save configuration;
+        else (yes)
+        endif
+        :Reset;
+        Stop
+    }
+    else (yes)
+    partition Running {
+        note right
+            **FACTORY RESET** button
+            is active for the whole
+            running sequence.
+        end note
+        :Connecting to WiFi;
+        
+        if (timeout) then (yes)
+        else (no)
+            :Measure temperature;
+            if (Sensor found) then (yes)
+                :Send data to ThingSpeak;
+            else (no)
+            endif
+        endif
+        
+        :Sleep;
+        Stop
+    }
+    endif
+
+start
+note left
+    **FACTORY RESET** button
+    pressed for 4 s
+end note
+partition Factory_Reset {
+    :Remove configuration;
+    :Reset;
+    Stop
+}
+@enduml
