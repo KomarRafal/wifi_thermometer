@@ -147,3 +147,11 @@ In this mode device behaves as WiFi access point with SSID: ```SetupGadget_XXX``
 ![connected](https://github.com/KomarRafal/wifi_thermometer/blob/master/wifi_connected.png?raw=true)
 
 ### Running
+
+In normal operating device wakes up after the demand amount of minutes. First, it tries to connect to the configured access point. There is a 20-second timeout. If the connection is not established until the timeout is reached the device is reset.
+
+After the connection is established device tries to connect to the temperature sensor. If there is no sensor the device is reset.
+
+After a successful sensor read the temperature is sent to the ThingSpeak server with a configured write key and field number.
+
+No matter whether the temperature was sent correctly or server timeouts the device is going to sleep.
