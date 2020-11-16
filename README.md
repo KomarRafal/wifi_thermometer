@@ -133,10 +133,10 @@ In this mode device behaves as WiFi access point with SSID: ```SetupGadget_XXX``
 
 - using web browser navigate to ```192.168.4.1```
 - fille in configuration fields (you can scan available access points - ```Scan for Networks```):
-  - ```Wi-Fi Name``` - AP name
+  - ```Wi-Fi Name``` - your local network AP name - network to which thermometer will connect
   - ```Password```
   - ```ThingSpeak write API key``` - from your ThingSpeak channel
-  - ```ThingSpeak field number``` - from your ThingSpeak channel
+  - ```ThingSpeak field number``` - from your ThingSpeak channel, number value
   - ```Sleep time``` - can be either 10min, 15min or 30min
 - click ```Save```
 
