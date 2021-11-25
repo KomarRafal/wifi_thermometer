@@ -9,6 +9,7 @@ WiFi remote thermomether with thingspeak.com support.
 
 ## Schematic
 ![schematic](https://github.com/KomarRafal/wifi_thermometer/blob/master/schematic.png?raw=true)
+![schematic](https://github.com/KomarRafal/wifi_thermometer/blob/master/schematic_12f.png?raw=true)
 
 
 GPIO16 (D0) has to be connected with RST pin to enable wake up from deep sleep:
